@@ -1,7 +1,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.pinterest_app">
+
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
    <application
-        android:label="pinterest_app"
+        android:label="Pinterest"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
        android:label="pick_images_camera_and_gallery"

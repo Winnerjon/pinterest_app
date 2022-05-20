@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:pinterest_app/models/pinterest_model.dart';
 import 'package:pinterest_app/pages/detail_page.dart';
 import 'package:pinterest_app/services/dio_service.dart';
@@ -18,6 +19,7 @@ class SearchPage extends StatefulWidget {
 class _SearchPageState extends State<SearchPage> {
   final TextEditingController searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  var albomName = "Pinterest";
   List<PinterestUser> posts = [];
   int pageNumber = 0;
   bool typing = false;
@@ -39,6 +41,10 @@ class _SearchPageState extends State<SearchPage> {
         posts.addAll(newPosts);
       }
     });
+  }
+
+  void saveImage(String path) async {
+    await GallerySaver.saveImage("$path.jpg",albumName: albomName);
   }
 
   @override
@@ -215,13 +221,26 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ),
           title: Text(posts[index].user!.name!),
-          trailing: InkWell(
-            onTap: () {
-              setState(() {
-                Share.share("${posts[index].urls!.regular!}");
-              });
-            },
-            child: Icon(Icons.more_horiz),
+          trailing: PopupMenuButton<int>(
+            icon: Icon(Icons.more_horiz),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: Text("Download"),
+                onTap: () {
+                  saveImage(posts[index].urls!.regular!);
+                },
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  setState(() {
+                    Share.share("${posts[index].urls!.regular!}");
+                  });
+                },
+                value: 2,
+                child: Text("Share"),
+              ),
+            ],
           ),
         ),
       ],

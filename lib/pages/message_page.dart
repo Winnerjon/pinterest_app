@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:pinterest_app/models/collections_model.dart';
 import 'package:pinterest_app/services/dio_service.dart';
-import 'package:pinterest_app/services/http_service.dart';
 
 class MessagePage extends StatefulWidget {
   static const String id = "/message_page";

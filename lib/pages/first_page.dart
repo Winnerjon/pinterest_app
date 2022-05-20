@@ -118,7 +118,7 @@ class _FirstPageState extends State<FirstPage> {
                   backgroundColor: Colors.grey.shade300,
                   child: Text(
                     DbService.loadUser().firstName.substring(0, 1),
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 17, fontWeight: FontWeight.w900),
                   ),
                 ),

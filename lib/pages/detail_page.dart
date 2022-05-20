@@ -1,16 +1,12 @@
-import 'dart:io';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:pinterest_app/models/pinterest_model.dart';
 import 'package:pinterest_app/services/db_service.dart';
 import 'package:pinterest_app/services/dio_service.dart';
-import 'package:http/http.dart';
 import 'package:share_plus/share_plus.dart';
 
 class DetailPage extends StatefulWidget {
@@ -25,18 +21,17 @@ class DetailPage extends StatefulWidget {
 }
 
 class _DetailPageState extends State<DetailPage> {
+  var albomName = "Pinterest";
   List pageList = ["All"];
   int selectedIndex = 0;
   bool isLoadPage = false;
   List<PinterestUser> posts = [];
   int newPostsLength = 0;
-  double downloadPercent = 0;
-  bool showDownloadIndicator = false;
-  bool showDraggableSheet = false;
   final ScrollController _scrollController = ScrollController();
 
   void _apiPostList() {
-    DioNetwork.GET(DioNetwork.API_LIST, DioNetwork.paramsPage(widget.pageNumber!))
+    DioNetwork.GET(
+            DioNetwork.API_LIST, DioNetwork.paramsPage(widget.pageNumber!))
         .then((response) => {
               _showResponse(response!),
             });
@@ -56,64 +51,15 @@ class _DetailPageState extends State<DetailPage> {
     if (kDebugMode) {
       print(pageNumber);
     }
-    String? response =
-        await DioNetwork.GET(DioNetwork.API_LIST, DioNetwork.paramsPage(pageNumber));
+    String? response = await DioNetwork.GET(
+        DioNetwork.API_LIST, DioNetwork.paramsPage(pageNumber));
     List<PinterestUser> newPosts = DioNetwork.parseResponse(response!);
     posts.addAll(newPosts);
   }
 
-  void fireToast(String message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 1,
-        textColor: Colors.white,
-        fontSize: 16);
-  }
 
-  void downloadFile(String url, String filename) async {
-    var permission = await _getPermission(Permission.storage);
-    try {
-      if (permission != false) {
-        final response = await get(Uri.parse(url));
-        Directory generalDownloadDir =
-        Directory('/storage/emulated/0/Download');
-        File imageFile = File("${generalDownloadDir.path}/$filename.jpg");
-        await imageFile.writeAsBytes(response.bodyBytes);
-        fireToast("Image downloaded");
-      } else {
-        print("Permission Denied");
-      }
-    } catch (e) {
-      print(e.toString());
-    }
-  }
-
-  Future<bool> _getPermission(Permission permission) async {
-    if (await permission.isGranted) {
-      return true;
-    } else {
-      var result = await permission.request();
-      if (result == PermissionStatus.granted) {
-        return true;
-      } else {
-        print(result.toString());
-        return false;
-      }
-    }
-  }
-
-  void showToast() {
-    Fluttertoast.showToast(
-        fontSize: 16,
-        msg: 'Downloaded successfully',
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.BOTTOM,
-        timeInSecForIosWeb: 2,
-        backgroundColor: Colors.white,
-        textColor: Colors.black
-    );
+  void saveImage(String path) async {
+    await GallerySaver.saveImage("$path.jpg",albumName: albomName);
   }
 
   @override
@@ -162,7 +108,8 @@ class _DetailPageState extends State<DetailPage> {
                 child: CachedNetworkImage(
                   imageUrl: widget.list!.urls!.regular!,
                   progressIndicatorBuilder: (context, url, downloadProgress) =>
-                      Image(image: AssetImage("assets/images/locals/img_1.png")),
+                      Image(
+                          image: AssetImage("assets/images/locals/img_1.png")),
                   errorWidget: (context, url, error) => Icon(Icons.error),
                 ),
               ),
@@ -335,17 +282,20 @@ class _DetailPageState extends State<DetailPage> {
                             borderRadius: BorderRadius.circular(25),
                             child: DbService.loadUser().profileImage != null
                                 ? Image.asset(
-                              DbService.loadUser().profileImage!,
-                              fit: BoxFit.cover,
-                            )
+                                    DbService.loadUser().profileImage!,
+                                    fit: BoxFit.cover,
+                                  )
                                 : CircleAvatar(
-                              backgroundColor: Colors.grey.shade300,
-                              child: Text(
-                                DbService.loadUser().firstName.substring(0, 1),
-                                style: TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.w900),
-                              ),
-                            ),
+                                    backgroundColor: Colors.grey.shade300,
+                                    child: Text(
+                                      DbService.loadUser()
+                                          .firstName
+                                          .substring(0, 1),
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w900),
+                                    ),
+                                  ),
                           ),
                         ),
                       ),
@@ -422,20 +372,18 @@ class _DetailPageState extends State<DetailPage> {
                   child: Container(
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: AssetImage("assets/images/locals/img_1.png"),
-                        )
-                    ),
+                      fit: BoxFit.cover,
+                      image: AssetImage("assets/images/locals/img_1.png"),
+                    )),
                   )),
               errorWidget: (context, url, error) => AspectRatio(
                   aspectRatio: posts[index].width! / posts[index].height!,
                   child: Container(
                     decoration: BoxDecoration(
                         image: DecorationImage(
-                          fit: BoxFit.cover,
-                          image: AssetImage("assets/images/locals/img.png"),
-                        )
-                    ),
+                      fit: BoxFit.cover,
+                      image: AssetImage("assets/images/locals/img.png"),
+                    )),
                   )),
             ),
           ),
@@ -457,20 +405,18 @@ class _DetailPageState extends State<DetailPage> {
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage("assets/images/locals/img_1.png"),
-                          )
-                      ),
+                        fit: BoxFit.cover,
+                        image: AssetImage("assets/images/locals/img_1.png"),
+                      )),
                     )),
                 errorWidget: (context, url, error) => AspectRatio(
                     aspectRatio: posts[index].width! / posts[index].height!,
                     child: Container(
                       decoration: BoxDecoration(
                           image: DecorationImage(
-                            fit: BoxFit.cover,
-                            image: AssetImage("assets/images/locals/img.png"),
-                          )
-                      ),
+                        fit: BoxFit.cover,
+                        image: AssetImage("assets/images/locals/img.png"),
+                      )),
                     )),
               ),
             ),
@@ -482,12 +428,12 @@ class _DetailPageState extends State<DetailPage> {
               PopupMenuItem(
                 value: 1,
                 child: Text("Download"),
-                onTap: (){
-                  downloadFile(posts[index].links!.download!,posts[index].user!.name!);
+                onTap: () {
+                  saveImage(posts[index].urls!.regular!);
                 },
               ),
               PopupMenuItem(
-                onTap: (){
+                onTap: () {
                   setState(() {
                     Share.share("${posts[index].urls!.regular!}");
                   });

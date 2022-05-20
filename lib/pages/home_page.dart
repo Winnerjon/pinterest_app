@@ -1,8 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:gallery_saver/gallery_saver.dart';
 import 'package:pinterest_app/models/pinterest_model.dart';
 import 'package:pinterest_app/pages/detail_page.dart';
 import 'package:pinterest_app/pages/message_page.dart';
@@ -10,7 +10,6 @@ import 'package:pinterest_app/pages/profile_page.dart';
 import 'package:pinterest_app/pages/search_page.dart';
 import 'package:pinterest_app/services/db_service.dart';
 import 'package:pinterest_app/services/dio_service.dart';
-import 'package:pinterest_app/services/http_service.dart';
 import 'package:share_plus/share_plus.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,16 +22,11 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  var albomName = "Pinterest";
   List pageList = ["All"];
   int selectedIndex = 0;
   int pageNumber = 1;
   bool isLoadPage = false;
-  static List links = [
-    'https://telegram.me/share/url?url=',
-    'https://telegram.me/share/url?url=',
-    "sms:?body=",
-    "mailto:?subject=Flutter&body="
-  ];
   List<PinterestUser> posts = [];
   int newPostsLength = 0;
   final ScrollController _scrollController = ScrollController();
@@ -74,6 +68,10 @@ class _HomePageState extends State<HomePage> {
     String? response = await DioNetwork.GET(DioNetwork.API_LIST, DioNetwork.paramsPage(pageNumber));
     List<PinterestUser> newPosts = DioNetwork.parseResponse(response!);
     posts.addAll(newPosts);
+  }
+
+  void saveImage(String path) async {
+    await GallerySaver.saveImage("$path.jpg",albumName: albomName);
   }
 
   @override
@@ -230,13 +228,26 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           title: Text(posts[index].user!.name!),
-          trailing: InkWell(
-            onTap: () {
-              setState(() {
-                Share.share("${posts[index].urls!.regular!}");
-              });
-            },
-            child: Icon(Icons.more_horiz),
+          trailing: PopupMenuButton<int>(
+            icon: Icon(Icons.more_horiz),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 1,
+                child: Text("Download"),
+                onTap: () {
+                  saveImage(posts[index].urls!.regular!);
+                },
+              ),
+              PopupMenuItem(
+                onTap: () {
+                  setState(() {
+                    Share.share("${posts[index].urls!.regular!}");
+                  });
+                },
+                value: 2,
+                child: Text("Share"),
+              ),
+            ],
           ),
         ),
       ],
